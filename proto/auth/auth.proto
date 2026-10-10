@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./auth";
+
+// 登录态用户信息（与 repo_backend JWT payload / AuthUser 对齐）
+message UserInfo {
+  int64  user_id       = 1;
+  string email         = 2;
+  string username      = 3;
+  int64  tenant_id     = 4;
+  string role          = 5;  // 固定 "merchant"
+  bool   is_super_user = 6;
+  int64  exp           = 7;  // 秒级过期时间戳
+}
+
+// 统一业务响应码：200 成功，其他值与 repo_backend errorCode 一致
+message RegisterReq {
+  string email    = 1;
+  string username = 2;
+  string password = 3; // 明文密码，服务端 sha256(password + "_" + salt)
+}
+message RegisterResp {
+  int32  code     = 1;
+  string message  = 2;
+  int64  user_id  = 3;
+}
+
+message LoginReq {
+  string email        = 1;
+  string password     = 2; // 客户端提交 sha256(库中password + "_" + nonce)
+  string captcha_id   = 3;
+  string captcha_text = 4;
+  string nonce        = 5;
+}
+message LoginResp {
+  int32    code    = 1;
+  string   message = 2;
+  string   token   = 3;
+  UserInfo user    = 4;
+}
+
+message LogoutReq {
+  string token = 1;
+}
+
+message BaseResp {
+  int32  code    = 1;
+  string message = 2;
+}
+
+message CurrentReq {
+  string token = 1;
+}
+message CurrentResp {
+  int32    code    = 1;
+  string   message = 2;
+  UserInfo user    = 3;
+}
+
+message UpdatePasswordReq {
+  string token    = 1;
+  string current  = 2; // sha256(库中password + "_" + nonce)
+  string password = 3; // 新明文密码
+  string nonce    = 4;
+}
+
+message EmailReq {
+  string email = 1;
+}
+message SaltResp {
+  int32  code    = 1;
+  string message = 2;
+  string salt    = 3;
+}
+message EmailExistedResp {
+  int32  code    = 1;
+  string message = 2;
+  bool   existed = 3;
+}
+
+message NonceReq {}
+message NonceResp {
+  int32  code    = 1;
+  string message = 2;
+  string nonce   = 3;
+}
+
+message CaptchaReq {}
+message CaptchaResp {
+  int32  code       = 1;
+  string message    = 2;
+  string image      = 3; // base64 dataURL，前端直接用于 <img src>
+  string captcha_id = 4;
+}
+
+message ValidateSessionReq {
+  string token = 1;
+}
+message ValidateSessionResp {
+  int32    code    = 1;
+  string   message = 2;
+  UserInfo user    = 3;
+}
+
+// ---------------- OAuth2 授权码模式 ----------------
+message OAuthAuthorizeReq {
+  int64  user_id      = 1;
+  string client_id    = 2;
+  string redirect_uri = 3;
+}
+message OAuthAuthorizeResp {
+  int32  code      = 1;
+  string message   = 2;
+  string auth_code = 3;
+}
+
+message OAuthExchangeReq {
+  string client_id     = 1;
+  string client_secret = 2;
+  string auth_code     = 3;
+  string redirect_uri  = 4;
+}
+message OAuthExchangeResp {
+  int32    code         = 1;
+  string   message      = 2;
+  string   access_token = 3;
+  int64    expires_in   = 4;
+  UserInfo user         = 5;
+}
+
+message OAuthClientReq {
+  string client_id = 1;
+}
+message OAuthClientResp {
+  int32  code    = 1;
+  string message = 2;
+  string name    = 3;
+  bool   valid   = 4;
+}
+
+service Auth {
+  rpc Register(RegisterReq) returns (RegisterResp);
+  rpc Login(LoginReq) returns (LoginResp);
+  rpc Logout(LogoutReq) returns (BaseResp);
+  rpc CurrentUser(CurrentReq) returns (CurrentResp);
+  rpc UpdatePassword(UpdatePasswordReq) returns (BaseResp);
+  rpc GetSalt(EmailReq) returns (SaltResp);
+  rpc CheckEmailExisted(EmailReq) returns (EmailExistedResp);
+  rpc GetNonce(NonceReq) returns (NonceResp);
+  rpc GetCaptcha(CaptchaReq) returns (CaptchaResp);
+  // 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
+  rpc ValidateSession(ValidateSessionReq) returns (ValidateSessionResp);
+  // OAuth2 授权码模式：已登录用户为业务系统颁发授权码（5 分钟一次性）
+  rpc OAuthAuthorize(OAuthAuthorizeReq) returns (OAuthAuthorizeResp);
+  // OAuth2 授权码模式：业务系统用授权码 + client 凭证换 access_token
+  rpc OAuthExchangeToken(OAuthExchangeReq) returns (OAuthExchangeResp);
+  // 查询 client 基本信息（登录页展示应用名称）
+  rpc OAuthClientInfo(OAuthClientReq) returns (OAuthClientResp);
+}

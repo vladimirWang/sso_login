@@ -1,0 +1,40 @@
+# ---------- 版本控制 / 忽略规则自身 ----------
+.git/
+.gitignore
+.dockerignore
+
+# ---------- 环境变量（server 运行时由 compose env_file 注入，无需进入构建上下文）----------
+.env
+.env.*
+
+# ---------- 本地构建产物（镜像内重新编译）----------
+bin/
+*.exe
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# ---------- 运行时不需要的文档与脚本 ----------
+*.md
+Makefile
+Dockerfile
+docker-compose.yml
+start-*.sh
+
+# ---------- e2e 脚本与 SQL（数据库由外部独立维护）----------
+deploy/scripts/
+deploy/sql/
+
+# ---------- nginx 配置与证书（仅 compose 运行时 bind mount，不打进 server 镜像；
+#            注意：.dockerignore 不影响 bind mount，运行时挂载照常生效）----------
+deploy/docker/nginx/
+
+# ---------- macOS / IDE ----------
+**/.DS_Store
+.idea/
+.vscode/
+
+# ---------- 日志 ----------
+*.log
+logs/

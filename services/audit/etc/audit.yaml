@@ -1,0 +1,10 @@
+Name: audit-consumer
+
+RabbitMQ:
+  Host: 127.0.0.1
+  Port: 5672
+  User: root
+  Password: "1234"
+  VHost: /
+  Exchange: auth.events
+  Queue: audit.auth.events

@@ -1,0 +1,129 @@
+syntax = "v1"
+
+info (
+	title:   "sso auth api"
+	desc:    "SSO 登录中心 REST 网关，内部通过 gRPC(etcd 服务发现) 调用 auth-rpc"
+	author:  "sso_login"
+	version: "v1"
+)
+
+type (
+	// ---------------- 公共接口类型 ----------------
+	RegisterReq {
+		Email    string `json:"email"`
+		Username string `json:"username,optional"`
+		Password string `json:"password"`
+	}
+	RegisterResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+	}
+	LoginReq {
+		Email       string `json:"email"`
+		Password    string `json:"password"`
+		CaptchaId   string `json:"captchaId"`
+		CaptchaText string `json:"captchaText"`
+		Nonce       string `json:"nonce"`
+	}
+	LoginResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+		Data    string `json:"data"` // JWT token 原文
+	}
+	NonceResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+		Data    string `json:"data"`
+	}
+	CaptchaData {
+		Image     string `json:"image"`
+		CaptchaId string `json:"captchaId"`
+	}
+	CaptchaResp {
+		Code    int32       `json:"code"`
+		Message string      `json:"message"`
+		Data    CaptchaData `json:"data"`
+	}
+	// 邮箱路径参数
+	EmailPath {
+		Email string `path:"email"`
+	}
+	SaltResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+		Data    string `json:"data"`
+	}
+	EmailExistedResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+		Data    bool   `json:"data"`
+	}
+	// ---------------- 需登录接口类型 ----------------
+	LogoutReq  {}
+	BaseResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+	}
+	UserInfo {
+		UserId      int64  `json:"userId"`
+		Email       string `json:"email"`
+		Username    string `json:"username,optional"`
+		TenantId    int64  `json:"tenantId,optional"`
+		Role        string `json:"role"`
+		IsSuperUser bool   `json:"isSuperUser"`
+		Exp         int64  `json:"exp"`
+	}
+	CurrentResp {
+		Code    int32    `json:"code"`
+		Message string   `json:"message"`
+		Data    UserInfo `json:"data"`
+	}
+	UpdatePasswordReq {
+		Current  string `json:"current"`
+		Password string `json:"password"`
+		Nonce    string `json:"nonce"`
+	}
+)
+
+// 公共接口：登录 / 注册 / 验证码 / nonce / salt 等，无需登录态
+@server (
+	group:  common
+	prefix: /api/v1
+)
+service auth-api {
+	@handler register
+	post /auth/register (RegisterReq) returns (RegisterResp)
+
+	@handler login
+	post /auth/login (LoginReq) returns (LoginResp)
+
+	@handler getSalt
+	get /auth/getSalt/:email (EmailPath) returns (SaltResp)
+
+	@handler checkEmailExisted
+	get /auth/checkEmailExisted/:email (EmailPath) returns (EmailExistedResp)
+
+	@handler getNonce
+	get /util/nonce returns (NonceResp)
+
+	@handler getCaptcha
+	get /util/captcha returns (CaptchaResp)
+}
+
+// 受保护接口：必须携带有效 authorization 头（token 原文，由 Auth 中间件经 gRPC 校验会话）
+@server (
+	group:      secured
+	prefix:     /api/v1
+	middleware: Auth
+)
+service auth-api {
+	@handler logout
+	post /auth/logout (LogoutReq) returns (BaseResp)
+
+	@handler current
+	get /auth/current returns (CurrentResp)
+
+	@handler updatePassword
+	post /auth/updatePassword (UpdatePasswordReq) returns (BaseResp)
+}
+

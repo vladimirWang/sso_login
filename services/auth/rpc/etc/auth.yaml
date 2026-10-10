@@ -1,0 +1,28 @@
+Name: auth.rpc
+ListenOn: 0.0.0.0:8081
+Mode: dev
+# etcd / PostgreSQL / Redis / RabbitMQ 地址均来自环境变量：
+# 本地 go run 用 127.0.0.1（.env.test）；容器内在 compose 中统一覆盖为 host.docker.internal
+Etcd:
+  Hosts:
+    - ${ETCD_HOST}:${ETCD_PORT}
+  Key: auth.rpc
+
+# PostgreSQL 连接串（lib/pq 格式，开发环境 .env.dev / 生产环境 .env.prod）
+DataSource: host=${DB_HOST} port=${DB_PORT} user=${DB_USER} password=${DB_PASSWORD} dbname=${DB_NAME} sslmode=${DB_SSLMODE} timezone=Asia/Shanghai
+
+# Redis（本地映射 16379）
+RedisStore:
+  Host: ${REDIS_HOST}:${REDIS_PORT}
+  Type: node
+
+JwtSecret: sso-login-dev-secret-change-me
+
+# RabbitMQ 认证事件
+RabbitMQ:
+  Host: ${RABBIT_HOST}
+  Port: ${RABBIT_PORT}
+  User: root
+  Password: "1234"
+  VHost: /
+  Exchange: auth.events

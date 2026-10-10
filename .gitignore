@@ -1,0 +1,30 @@
+# ---------- macOS ----------
+.DS_Store
+
+# ---------- 编辑器 / IDE ----------
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---------- Go 构建产物 ----------
+/bin/
+*.exe
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# ---------- 环境变量（含数据库连接信息，禁止入库）----------
+# 按环境在本机/服务器自行创建 .env.dev / .env.prod
+.env
+.env.*
+
+# ---------- TLS 证书与私钥（私钥禁止入库）----------
+# 证书文件在部署机单独放置到 deploy/docker/nginx/ssl/，目录由 .gitkeep 保留
+deploy/docker/nginx/ssl/*
+!deploy/docker/nginx/ssl/.gitkeep
+
+# ---------- 日志 ----------
+*.log
+logs/

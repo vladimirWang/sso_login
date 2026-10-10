@@ -1,0 +1,52 @@
+# SSO 登录服务编排 —— 只包含 nginx 网关与 server 业务服务两个服务。
+#
+# PostgreSQL / Redis / etcd / RabbitMQ 均为外部依赖，不写在本 compose 中。
+# 开发环境这些依赖运行在宿主机上（独立容器或本机进程），从 Mac 视角地址为：
+#   PostgreSQL 127.0.0.1:15432   数据库连接配置见 .env.dev
+#   etcd       127.0.0.1:2379
+#   Redis      127.0.0.1:16379
+#   RabbitMQ   127.0.0.1:5672
+#
+# Docker Desktop（macOS）下容器访问宿主机依赖统一走 host.docker.internal
+# （可到达绑定在 loopback 上的本机进程，如 etcd；也能到达发布在 0.0.0.0 的容器端口）。
+# 这些地址在 environment 中覆盖 .env.dev 里的 127.0.0.1，本地 go run 仍读 .env.dev 原值。
+#
+# 环境切换（env 文件中的 ENV/HTTP_PORT/HTTPS_PORT/NGINX_CONF 同时用于本文件插值与容器注入）：
+#   开发（默认）：docker compose --env-file .env.dev up -d    纯 HTTP，nginx 监听 80
+#   生产：docker compose --env-file .env.prod up -d           7080->80（301 跳转），7443->443（HTTPS）
+
+services:
+  # auth-rpc(:8081) + auth-api(:8888) 同容器运行，见 deploy/docker/entrypoint.sh
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sso-login-server:latest
+    container_name: sso-login-server
+    env_file:
+      - .env.${ENV:-dev}
+    environment:
+      # environment 优先级高于 env_file，容器内统一经 Docker Desktop 网关访问宿主机依赖
+      DB_HOST: host.docker.internal
+      ETCD_HOST: host.docker.internal
+      REDIS_HOST: host.docker.internal
+      RABBIT_HOST: host.docker.internal
+    expose:
+      - "8888" # auth-api（nginx 反代目标，仅 compose 内网可见）
+      - "8081" # auth-rpc（仅内部服务注册/调用）
+    restart: unless-stopped
+
+  # 对外统一入口（反代到同 compose 网络中的 server:8888）
+  # 开发：default.conf 纯 HTTP；生产：prod.conf 80 跳 443 HTTPS（证书在 ./deploy/docker/nginx/ssl）
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sso-login-nginx
+    depends_on:
+      - server
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/docker/nginx/${NGINX_CONF:-default.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/docker/nginx/ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped

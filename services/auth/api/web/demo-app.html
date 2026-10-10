@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>演示业务系统 - SSO 接入示例</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+         background: #f5f6fa; min-height: 100vh; }
+  header { background: #001529; color: #fff; padding: 14px 32px; display: flex; align-items: center; gap: 12px; }
+  header .badge { background: #1677ff; border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+  main { max-width: 720px; margin: 48px auto; padding: 0 20px; }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.06); padding: 32px; margin-bottom: 20px; }
+  h2 { font-size: 18px; color: #222; margin-bottom: 16px; }
+  p.desc { color: #888; font-size: 14px; line-height: 1.8; margin-bottom: 20px; }
+  .btn { display: inline-block; height: 42px; line-height: 42px; padding: 0 28px; border: none;
+         border-radius: 8px; background: #1677ff; color: #fff; font-size: 15px; cursor: pointer;
+         text-decoration: none; transition: .2s; }
+  .btn:hover { background: #4096ff; }
+  pre { background: #0b1021; color: #9ecbff; padding: 16px; border-radius: 8px; font-size: 12px;
+        overflow: auto; white-space: pre-wrap; word-break: break-all; max-height: 320px; }
+  .kv { font-size: 13px; color: #555; margin-bottom: 8px; word-break: break-all; }
+  .kv b { color: #1677ff; }
+  .ok { color: #52c41a; font-weight: 600; }
+  .err { color: #cf1322; font-weight: 600; }
+</style>
+</head>
+<body>
+<header><span style="font-size:18px;font-weight:600">演示业务系统</span><span class="badge">demo-app</span>
+  <span style="margin-left:auto;font-size:12px;color:#8ca0b3">模拟第三方系统，验证 OAuth2 授权码模式</span></header>
+<main>
+  <div class="card" id="startCard">
+    <h2>接入 SSO 单点登录</h2>
+    <p class="desc">
+      本页模拟一个独立的业务系统。点击下方按钮将跳转到 SSO 统一登录页
+      （<code>/oauth/authorize</code>），登录成功后 SSO 会携带 <code>code</code> 与
+      <code>state</code> 302 回跳到本页（<code>/demo-app/callback</code>），
+      页面再以 <code>code + client_secret</code> 换取 <code>access_token</code>。<br>
+      <span style="color:#cf1322">注意：真实业务系统换取 token 应在服务端完成，demo 简化在前端发起。</span>
+    </p>
+    <button class="btn" id="btnLogin">使用 SSO 登录</button>
+  </div>
+  <div class="card" id="resultCard" style="display:none">
+    <h2>SSO 授权结果</h2>
+    <div id="kv"></div>
+    <pre id="out"></pre>
+  </div>
+</main>
+<script>
+"use strict";
+const CLIENT_ID     = "demo-app";
+const CLIENT_SECRET = "demo-secret"; // demo 专用；生产环境 client_secret 只应保存在业务系统服务端
+const REDIRECT_URI  = location.origin + "/demo-app/callback";
+
+const $ = (id) => document.getElementById(id);
+$("btnLogin").addEventListener("click", () => {
+  // 1. 跳转 SSO 授权端点（authorize → 未登录则先跳登录页，登录后自动回来）
+  const q = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "code",
+    state: "st_" + Math.random().toString(36).slice(2, 10)
+  });
+  location.href = "/oauth/authorize?" + q.toString();
+});
+
+(async function handleCallback() {
+  const p = new URLSearchParams(location.search);
+  const code  = p.get("code");
+  const state = p.get("state");
+  if (!code) return; // 普通入口页
+
+  $("startCard").style.display = "none";
+  $("resultCard").style.display = "block";
+  $("kv").innerHTML =
+    '<div class="kv">授权码 code：<b>' + code.slice(0, 16) + "…</b></div>" +
+    '<div class="kv">state：<b>' + (state || "-") + "</b>（应与发起时一致，防 CSRF）</div>";
+
+  // 2. 用 code + client 凭证换 access_token（真实系统在服务端做）
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    code,
+    redirect_uri: REDIRECT_URI
+  });
+  const tr = await fetch("/oauth/token", { method: "POST", body });
+  const tj = await tr.json();
+  if (!tr.ok || !tj.access_token) {
+    $("kv").innerHTML += '<div class="kv err">换取 token 失败：' + (tj.error_description || "") + "</div>";
+    $("out").textContent = JSON.stringify(tj, null, 2);
+    return;
+  }
+  // 3. 用 access_token 获取用户信息
+  const ur = await fetch("/oauth/userinfo", {
+    headers: { Authorization: "Bearer " + tj.access_token }
+  });
+  const uj = await ur.json();
+  $("kv").innerHTML += '<div class="kv ok">SSO 登录成功，已获得 access_token 并获取用户信息 ✓</div>';
+  $("out").textContent = JSON.stringify({ token: tj, userinfo: uj.data || uj }, null, 2);
+})();
+</script>
+</body>
+</html>
