@@ -3,8 +3,9 @@ FROM golang:1.27-alpine AS builder
 
 WORKDIR /build
 
-# 先拉依赖（利用层缓存）
+# 先拉依赖（利用层缓存）；GOPROXY 走国内代理，避免服务器上访问 proxy.golang.org 卡死
 COPY go.mod go.sum ./
+ENV GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 # 编译 auth-rpc（gRPC，连 PostgreSQL/Redis/etcd）与 auth-api（HTTP，对外提供 SSO）
