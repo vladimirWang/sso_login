@@ -9,9 +9,10 @@ ENV GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 # 编译 auth-rpc（gRPC，连 PostgreSQL/Redis/etcd）与 auth-api（HTTP，对外提供 SSO）
+# -p 2 限制编译并行度，压低内存峰值，避免小内存服务器上构建时 OOM 夯死
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/auth-rpc  ./services/auth/rpc \
-    && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/auth-api ./services/auth/api
+RUN CGO_ENABLED=0 GOOS=linux go build -p 2 -ldflags="-s -w" -o /out/auth-rpc  ./services/auth/rpc \
+    && CGO_ENABLED=0 GOOS=linux go build -p 2 -ldflags="-s -w" -o /out/auth-api ./services/auth/api
 
 # ---------- 运行阶段 ----------
 FROM alpine:3.20
