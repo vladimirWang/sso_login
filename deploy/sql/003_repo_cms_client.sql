@@ -4,13 +4,14 @@
 -- secret 明文由 repo_cms 侧保管（repo_backend .env 的 SSO_CLIENT_SECRET），此处仅存 sha256
 -- secret = repo-cms-ca4fcb283b57ab87e7c5b596（开发环境）
 -- 本地开发支持两个前端端口：5174（vite 默认）/ 5175（vite --host 或 5174 被占用时）
+-- 生产环境回跳地址：https://wms.hetou.vip:6443/#/landing/sso/callback
 
 INSERT INTO oauth_clients (client_id, client_secret, name, redirect_uris)
 VALUES (
     'repo-cms',
     '97d32c2004fc638533730bcd0f37e77478bf64f34f2d733d394743b4265b741a',
     '仓库管理系统',
-    'http://localhost:5174/#/landing/sso/callback,http://127.0.0.1:5174/#/landing/sso/callback,http://localhost:5175/#/landing/sso/callback,http://127.0.0.1:5175/#/landing/sso/callback'
+    'http://localhost:5174/#/landing/sso/callback,http://127.0.0.1:5174/#/landing/sso/callback,http://localhost:5175/#/landing/sso/callback,http://127.0.0.1:5175/#/landing/sso/callback,https://wms.hetou.vip:6443/#/landing/sso/callback'
 )
 ON CONFLICT (client_id) DO UPDATE
 SET redirect_uris = EXCLUDED.redirect_uris,
