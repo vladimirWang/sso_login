@@ -28,3 +28,7 @@ deploy/docker/nginx/ssl/*
 # ---------- 日志 ----------
 *.log
 logs/
+
+# ---------- 部署产物（build.sh 生成，不入库）----------
+/dist/
+*-deploy-*.tar.gz

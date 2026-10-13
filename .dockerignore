@@ -21,6 +21,10 @@ Makefile
 Dockerfile
 docker-compose*.yml
 start-*.sh
+build.sh
+up.sh
+dist/
+*-deploy-*.tar.gz
 
 # ---------- e2e 脚本与 SQL（数据库由外部独立维护）----------
 deploy/scripts/
