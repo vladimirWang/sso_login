@@ -1,0 +1,28 @@
+# 生产打包镜像（配合 build.sh 使用）
+#
+# 与 Dockerfile 的区别：本镜像内【不做 Go 编译】。
+# 两个二进制由 Mac 端 build.sh 用原生工具链交叉编译产出
+# （CGO_ENABLED=0 GOOS=linux GOARCH=amd64，纯静态、无 QEMU），
+# 镜像构建时只有一条轻量 apk add（ca 证书 + 时区），从根上避免
+# QEMU 模拟编译庞大 Go 依赖树导致内存爆炸/存储损坏。
+#
+# 构建上下文由 build.sh 组装为 .deploy-stage/，故 COPY 路径均为平铺文件名。
+FROM alpine:3.20
+
+# ca-certificates：HTTPS 回调；tzdata：Asia/Shanghai 时区
+RUN apk add --no-cache ca-certificates tzdata \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
+
+WORKDIR /app
+COPY auth-rpc    /app/bin/auth-rpc
+COPY auth-api    /app/bin/auth-api
+COPY auth.yaml       /app/etc/auth.yaml
+COPY auth-api.yaml   /app/etc/auth-api.yaml
+COPY entrypoint.sh   /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 8081 gRPC（auth-rpc），8888 HTTP（auth-api，nginx 反代目标）
+EXPOSE 8081 8888
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -31,4 +31,6 @@ logs/
 
 # ---------- 部署产物（build.sh 生成，不入库）----------
 /dist/
+/build-out/
+/.deploy-stage/
 *-deploy-*.tar.gz

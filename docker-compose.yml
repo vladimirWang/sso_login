@@ -2,13 +2,12 @@
 # 启动：docker compose up -d
 #
 # 只包含 nginx 网关与 server 业务服务两个服务。
-# PostgreSQL / Redis / RabbitMQ 由服务器上基础设施 compose 提供，
+# PostgreSQL / Redis / RabbitMQ / etcd 均由服务器上基础设施 compose 提供，
 # server 加入其外部 Docker 网络后用服务名访问：
 #   PostgreSQL -> postgres:5432（private_chef_network）
-#   Redis      -> redis:6379   （mac_docker_network）
-#   RabbitMQ   -> rabbitmq:5672（mac_docker_network）
-# etcd 为服务器本机进程，容器经 host-gateway 访问（host.docker.internal -> 宿主机网桥地址，
-# 要求 etcd 监听 0.0.0.0 或 docker 网桥地址，不能只绑 127.0.0.1）。
+#   Redis      -> redis:6379   （infra_network）
+#   RabbitMQ   -> rabbitmq:5672（infra_network）
+#   etcd       -> etcd:2379    （infra_network）
 # 以上连接地址均写在 .env.prod 中，经 env_file 注入，无需 environment 覆盖。
 # nginx 只在 compose 默认网络，通过服务名 server:8888 反代。
 
@@ -25,9 +24,6 @@ services:
     container_name: sso-login-server
     env_file:
       - .env.prod
-    extra_hosts:
-      # Linux 宿主机地址，供容器访问宿主机上的 etcd（:2379）
-      - "host.docker.internal:host-gateway"
     expose:
       - "8888" # auth-api（nginx 反代目标，仅 compose 内网可见）
       - "8081" # auth-rpc（仅内部服务注册/调用）
