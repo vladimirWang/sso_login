@@ -34,3 +34,5 @@ logs/
 /build-out/
 /.deploy-stage/
 *-deploy-*.tar.gz
+frontend/dist
+frontenv/dist.zip

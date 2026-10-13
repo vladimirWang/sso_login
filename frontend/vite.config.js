@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
   const proxyOpts = { target, changeOrigin: true, secure: false }
 
   return {
+    base: './',
     plugins: [react()],
     server: {
       port: 5173,
