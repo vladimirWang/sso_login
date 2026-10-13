@@ -17,6 +17,16 @@ type Config struct {
 	JwtSecret string
 	// RabbitMQ 登录事件发布
 	RabbitMQ RabbitMQConf
+	// 邮箱验证码 SMTP（QQ 邮箱，账号/授权码来自环境变量）
+	Email EmailConf
+}
+
+type EmailConf struct {
+	Host     string
+	Port     int
+	Account  string
+	Password string
+	FromName string `json:",optional"`
 }
 
 type RabbitMQConf struct {

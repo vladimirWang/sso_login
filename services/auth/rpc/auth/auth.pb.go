@@ -119,7 +119,8 @@ type RegisterReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"` // 明文密码，服务端 sha256(password + "_" + salt)
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`                    // 明文密码，服务端 sha256(password + "_" + salt)
+	EmailCode     string                 `protobuf:"bytes,4,opt,name=email_code,json=emailCode,proto3" json:"email_code,omitempty"` // 邮箱验证码（注册前由 SendEmailCode 发送，5 分钟一次性）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -171,6 +172,13 @@ func (x *RegisterReq) GetUsername() string {
 func (x *RegisterReq) GetPassword() string {
 	if x != nil {
 		return x.Password
+	}
+	return ""
+}
+
+func (x *RegisterReq) GetEmailCode() string {
+	if x != nil {
+		return x.EmailCode
 	}
 	return ""
 }
@@ -1011,6 +1019,119 @@ func (x *CaptchaResp) GetCaptchaId() string {
 	return ""
 }
 
+// 邮箱验证码：发送时 code 为空；校验时 code 必填
+type EmailCodeReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailCodeReq) Reset() {
+	*x = EmailCodeReq{}
+	mi := &file_proto_auth_auth_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailCodeReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailCodeReq) ProtoMessage() {}
+
+func (x *EmailCodeReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_auth_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailCodeReq.ProtoReflect.Descriptor instead.
+func (*EmailCodeReq) Descriptor() ([]byte, []int) {
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *EmailCodeReq) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *EmailCodeReq) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type EmailCodeResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Ttl           int32                  `protobuf:"varint,3,opt,name=ttl,proto3" json:"ttl,omitempty"` // 发送成功时返回验证码有效期（秒）
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailCodeResp) Reset() {
+	*x = EmailCodeResp{}
+	mi := &file_proto_auth_auth_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailCodeResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailCodeResp) ProtoMessage() {}
+
+func (x *EmailCodeResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_auth_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailCodeResp.ProtoReflect.Descriptor instead.
+func (*EmailCodeResp) Descriptor() ([]byte, []int) {
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *EmailCodeResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *EmailCodeResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *EmailCodeResp) GetTtl() int32 {
+	if x != nil {
+		return x.Ttl
+	}
+	return 0
+}
+
 type ValidateSessionReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
@@ -1020,7 +1141,7 @@ type ValidateSessionReq struct {
 
 func (x *ValidateSessionReq) Reset() {
 	*x = ValidateSessionReq{}
-	mi := &file_proto_auth_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_auth_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1032,7 +1153,7 @@ func (x *ValidateSessionReq) String() string {
 func (*ValidateSessionReq) ProtoMessage() {}
 
 func (x *ValidateSessionReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_auth_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1166,7 @@ func (x *ValidateSessionReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateSessionReq.ProtoReflect.Descriptor instead.
 func (*ValidateSessionReq) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{17}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ValidateSessionReq) GetToken() string {
@@ -1066,7 +1187,7 @@ type ValidateSessionResp struct {
 
 func (x *ValidateSessionResp) Reset() {
 	*x = ValidateSessionResp{}
-	mi := &file_proto_auth_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_auth_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1078,7 +1199,7 @@ func (x *ValidateSessionResp) String() string {
 func (*ValidateSessionResp) ProtoMessage() {}
 
 func (x *ValidateSessionResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_auth_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1091,7 +1212,7 @@ func (x *ValidateSessionResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateSessionResp.ProtoReflect.Descriptor instead.
 func (*ValidateSessionResp) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{18}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ValidateSessionResp) GetCode() int32 {
@@ -1127,7 +1248,7 @@ type OAuthAuthorizeReq struct {
 
 func (x *OAuthAuthorizeReq) Reset() {
 	*x = OAuthAuthorizeReq{}
-	mi := &file_proto_auth_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_auth_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1139,7 +1260,7 @@ func (x *OAuthAuthorizeReq) String() string {
 func (*OAuthAuthorizeReq) ProtoMessage() {}
 
 func (x *OAuthAuthorizeReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_auth_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1152,7 +1273,7 @@ func (x *OAuthAuthorizeReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthAuthorizeReq.ProtoReflect.Descriptor instead.
 func (*OAuthAuthorizeReq) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{19}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OAuthAuthorizeReq) GetUserId() int64 {
@@ -1187,7 +1308,7 @@ type OAuthAuthorizeResp struct {
 
 func (x *OAuthAuthorizeResp) Reset() {
 	*x = OAuthAuthorizeResp{}
-	mi := &file_proto_auth_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_auth_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1199,7 +1320,7 @@ func (x *OAuthAuthorizeResp) String() string {
 func (*OAuthAuthorizeResp) ProtoMessage() {}
 
 func (x *OAuthAuthorizeResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_auth_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,7 +1333,7 @@ func (x *OAuthAuthorizeResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthAuthorizeResp.ProtoReflect.Descriptor instead.
 func (*OAuthAuthorizeResp) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{20}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *OAuthAuthorizeResp) GetCode() int32 {
@@ -1248,7 +1369,7 @@ type OAuthExchangeReq struct {
 
 func (x *OAuthExchangeReq) Reset() {
 	*x = OAuthExchangeReq{}
-	mi := &file_proto_auth_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_auth_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1260,7 +1381,7 @@ func (x *OAuthExchangeReq) String() string {
 func (*OAuthExchangeReq) ProtoMessage() {}
 
 func (x *OAuthExchangeReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_auth_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1273,7 +1394,7 @@ func (x *OAuthExchangeReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthExchangeReq.ProtoReflect.Descriptor instead.
 func (*OAuthExchangeReq) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{21}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *OAuthExchangeReq) GetClientId() string {
@@ -1317,7 +1438,7 @@ type OAuthExchangeResp struct {
 
 func (x *OAuthExchangeResp) Reset() {
 	*x = OAuthExchangeResp{}
-	mi := &file_proto_auth_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_auth_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1329,7 +1450,7 @@ func (x *OAuthExchangeResp) String() string {
 func (*OAuthExchangeResp) ProtoMessage() {}
 
 func (x *OAuthExchangeResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_auth_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1342,7 +1463,7 @@ func (x *OAuthExchangeResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthExchangeResp.ProtoReflect.Descriptor instead.
 func (*OAuthExchangeResp) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{22}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *OAuthExchangeResp) GetCode() int32 {
@@ -1389,7 +1510,7 @@ type OAuthClientReq struct {
 
 func (x *OAuthClientReq) Reset() {
 	*x = OAuthClientReq{}
-	mi := &file_proto_auth_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_auth_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1401,7 +1522,7 @@ func (x *OAuthClientReq) String() string {
 func (*OAuthClientReq) ProtoMessage() {}
 
 func (x *OAuthClientReq) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_auth_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1414,7 +1535,7 @@ func (x *OAuthClientReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthClientReq.ProtoReflect.Descriptor instead.
 func (*OAuthClientReq) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{23}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *OAuthClientReq) GetClientId() string {
@@ -1436,7 +1557,7 @@ type OAuthClientResp struct {
 
 func (x *OAuthClientResp) Reset() {
 	*x = OAuthClientResp{}
-	mi := &file_proto_auth_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_auth_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1448,7 +1569,7 @@ func (x *OAuthClientResp) String() string {
 func (*OAuthClientResp) ProtoMessage() {}
 
 func (x *OAuthClientResp) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_auth_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_auth_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1461,7 +1582,7 @@ func (x *OAuthClientResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OAuthClientResp.ProtoReflect.Descriptor instead.
 func (*OAuthClientResp) Descriptor() ([]byte, []int) {
-	return file_proto_auth_auth_proto_rawDescGZIP(), []int{24}
+	return file_proto_auth_auth_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *OAuthClientResp) GetCode() int32 {
@@ -1504,11 +1625,13 @@ const file_proto_auth_auth_proto_rawDesc = "" +
 	"\ttenant_id\x18\x04 \x01(\x03R\btenantId\x12\x12\n" +
 	"\x04role\x18\x05 \x01(\tR\x04role\x12\"\n" +
 	"\ris_super_user\x18\x06 \x01(\bR\visSuperUser\x12\x10\n" +
-	"\x03exp\x18\a \x01(\x03R\x03exp\"[\n" +
+	"\x03exp\x18\a \x01(\x03R\x03exp\"z\n" +
 	"\vRegisterReq\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"U\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1d\n" +
+	"\n" +
+	"email_code\x18\x04 \x01(\tR\temailCode\"U\n" +
 	"\fRegisterResp\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x17\n" +
@@ -1565,7 +1688,14 @@ const file_proto_auth_auth_proto_rawDesc = "" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
 	"\x05image\x18\x03 \x01(\tR\x05image\x12\x1d\n" +
 	"\n" +
-	"captcha_id\x18\x04 \x01(\tR\tcaptchaId\"*\n" +
+	"captcha_id\x18\x04 \x01(\tR\tcaptchaId\"8\n" +
+	"\fEmailCodeReq\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"O\n" +
+	"\rEmailCodeResp\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x10\n" +
+	"\x03ttl\x18\x03 \x01(\x05R\x03ttl\"*\n" +
 	"\x12ValidateSessionReq\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"g\n" +
 	"\x13ValidateSessionResp\x12\x12\n" +
@@ -1598,7 +1728,7 @@ const file_proto_auth_auth_proto_rawDesc = "" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
-	"\x05valid\x18\x04 \x01(\bR\x05valid2\xd9\x05\n" +
+	"\x05valid\x18\x04 \x01(\bR\x05valid2\xcf\x06\n" +
 	"\x04Auth\x121\n" +
 	"\bRegister\x12\x11.auth.RegisterReq\x1a\x12.auth.RegisterResp\x12(\n" +
 	"\x05Login\x12\x0e.auth.LoginReq\x1a\x0f.auth.LoginResp\x12)\n" +
@@ -1609,7 +1739,9 @@ const file_proto_auth_auth_proto_rawDesc = "" +
 	"\x11CheckEmailExisted\x12\x0e.auth.EmailReq\x1a\x16.auth.EmailExistedResp\x12+\n" +
 	"\bGetNonce\x12\x0e.auth.NonceReq\x1a\x0f.auth.NonceResp\x121\n" +
 	"\n" +
-	"GetCaptcha\x12\x10.auth.CaptchaReq\x1a\x11.auth.CaptchaResp\x12F\n" +
+	"GetCaptcha\x12\x10.auth.CaptchaReq\x1a\x11.auth.CaptchaResp\x128\n" +
+	"\rSendEmailCode\x12\x12.auth.EmailCodeReq\x1a\x13.auth.EmailCodeResp\x12:\n" +
+	"\x0fVerifyEmailCode\x12\x12.auth.EmailCodeReq\x1a\x13.auth.EmailCodeResp\x12F\n" +
 	"\x0fValidateSession\x12\x18.auth.ValidateSessionReq\x1a\x19.auth.ValidateSessionResp\x12C\n" +
 	"\x0eOAuthAuthorize\x12\x17.auth.OAuthAuthorizeReq\x1a\x18.auth.OAuthAuthorizeResp\x12E\n" +
 	"\x12OAuthExchangeToken\x12\x16.auth.OAuthExchangeReq\x1a\x17.auth.OAuthExchangeResp\x12>\n" +
@@ -1627,7 +1759,7 @@ func file_proto_auth_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_auth_proto_rawDescData
 }
 
-var file_proto_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_proto_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_proto_auth_auth_proto_goTypes = []any{
 	(*UserInfo)(nil),            // 0: auth.UserInfo
 	(*RegisterReq)(nil),         // 1: auth.RegisterReq
@@ -1646,14 +1778,16 @@ var file_proto_auth_auth_proto_goTypes = []any{
 	(*NonceResp)(nil),           // 14: auth.NonceResp
 	(*CaptchaReq)(nil),          // 15: auth.CaptchaReq
 	(*CaptchaResp)(nil),         // 16: auth.CaptchaResp
-	(*ValidateSessionReq)(nil),  // 17: auth.ValidateSessionReq
-	(*ValidateSessionResp)(nil), // 18: auth.ValidateSessionResp
-	(*OAuthAuthorizeReq)(nil),   // 19: auth.OAuthAuthorizeReq
-	(*OAuthAuthorizeResp)(nil),  // 20: auth.OAuthAuthorizeResp
-	(*OAuthExchangeReq)(nil),    // 21: auth.OAuthExchangeReq
-	(*OAuthExchangeResp)(nil),   // 22: auth.OAuthExchangeResp
-	(*OAuthClientReq)(nil),      // 23: auth.OAuthClientReq
-	(*OAuthClientResp)(nil),     // 24: auth.OAuthClientResp
+	(*EmailCodeReq)(nil),        // 17: auth.EmailCodeReq
+	(*EmailCodeResp)(nil),       // 18: auth.EmailCodeResp
+	(*ValidateSessionReq)(nil),  // 19: auth.ValidateSessionReq
+	(*ValidateSessionResp)(nil), // 20: auth.ValidateSessionResp
+	(*OAuthAuthorizeReq)(nil),   // 21: auth.OAuthAuthorizeReq
+	(*OAuthAuthorizeResp)(nil),  // 22: auth.OAuthAuthorizeResp
+	(*OAuthExchangeReq)(nil),    // 23: auth.OAuthExchangeReq
+	(*OAuthExchangeResp)(nil),   // 24: auth.OAuthExchangeResp
+	(*OAuthClientReq)(nil),      // 25: auth.OAuthClientReq
+	(*OAuthClientResp)(nil),     // 26: auth.OAuthClientResp
 }
 var file_proto_auth_auth_proto_depIdxs = []int32{
 	0,  // 0: auth.LoginResp.user:type_name -> auth.UserInfo
@@ -1669,25 +1803,29 @@ var file_proto_auth_auth_proto_depIdxs = []int32{
 	10, // 10: auth.Auth.CheckEmailExisted:input_type -> auth.EmailReq
 	13, // 11: auth.Auth.GetNonce:input_type -> auth.NonceReq
 	15, // 12: auth.Auth.GetCaptcha:input_type -> auth.CaptchaReq
-	17, // 13: auth.Auth.ValidateSession:input_type -> auth.ValidateSessionReq
-	19, // 14: auth.Auth.OAuthAuthorize:input_type -> auth.OAuthAuthorizeReq
-	21, // 15: auth.Auth.OAuthExchangeToken:input_type -> auth.OAuthExchangeReq
-	23, // 16: auth.Auth.OAuthClientInfo:input_type -> auth.OAuthClientReq
-	2,  // 17: auth.Auth.Register:output_type -> auth.RegisterResp
-	4,  // 18: auth.Auth.Login:output_type -> auth.LoginResp
-	6,  // 19: auth.Auth.Logout:output_type -> auth.BaseResp
-	8,  // 20: auth.Auth.CurrentUser:output_type -> auth.CurrentResp
-	6,  // 21: auth.Auth.UpdatePassword:output_type -> auth.BaseResp
-	11, // 22: auth.Auth.GetSalt:output_type -> auth.SaltResp
-	12, // 23: auth.Auth.CheckEmailExisted:output_type -> auth.EmailExistedResp
-	14, // 24: auth.Auth.GetNonce:output_type -> auth.NonceResp
-	16, // 25: auth.Auth.GetCaptcha:output_type -> auth.CaptchaResp
-	18, // 26: auth.Auth.ValidateSession:output_type -> auth.ValidateSessionResp
-	20, // 27: auth.Auth.OAuthAuthorize:output_type -> auth.OAuthAuthorizeResp
-	22, // 28: auth.Auth.OAuthExchangeToken:output_type -> auth.OAuthExchangeResp
-	24, // 29: auth.Auth.OAuthClientInfo:output_type -> auth.OAuthClientResp
-	17, // [17:30] is the sub-list for method output_type
-	4,  // [4:17] is the sub-list for method input_type
+	17, // 13: auth.Auth.SendEmailCode:input_type -> auth.EmailCodeReq
+	17, // 14: auth.Auth.VerifyEmailCode:input_type -> auth.EmailCodeReq
+	19, // 15: auth.Auth.ValidateSession:input_type -> auth.ValidateSessionReq
+	21, // 16: auth.Auth.OAuthAuthorize:input_type -> auth.OAuthAuthorizeReq
+	23, // 17: auth.Auth.OAuthExchangeToken:input_type -> auth.OAuthExchangeReq
+	25, // 18: auth.Auth.OAuthClientInfo:input_type -> auth.OAuthClientReq
+	2,  // 19: auth.Auth.Register:output_type -> auth.RegisterResp
+	4,  // 20: auth.Auth.Login:output_type -> auth.LoginResp
+	6,  // 21: auth.Auth.Logout:output_type -> auth.BaseResp
+	8,  // 22: auth.Auth.CurrentUser:output_type -> auth.CurrentResp
+	6,  // 23: auth.Auth.UpdatePassword:output_type -> auth.BaseResp
+	11, // 24: auth.Auth.GetSalt:output_type -> auth.SaltResp
+	12, // 25: auth.Auth.CheckEmailExisted:output_type -> auth.EmailExistedResp
+	14, // 26: auth.Auth.GetNonce:output_type -> auth.NonceResp
+	16, // 27: auth.Auth.GetCaptcha:output_type -> auth.CaptchaResp
+	18, // 28: auth.Auth.SendEmailCode:output_type -> auth.EmailCodeResp
+	18, // 29: auth.Auth.VerifyEmailCode:output_type -> auth.EmailCodeResp
+	20, // 30: auth.Auth.ValidateSession:output_type -> auth.ValidateSessionResp
+	22, // 31: auth.Auth.OAuthAuthorize:output_type -> auth.OAuthAuthorizeResp
+	24, // 32: auth.Auth.OAuthExchangeToken:output_type -> auth.OAuthExchangeResp
+	26, // 33: auth.Auth.OAuthClientInfo:output_type -> auth.OAuthClientResp
+	19, // [19:34] is the sub-list for method output_type
+	4,  // [4:19] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1704,7 +1842,7 @@ func file_proto_auth_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_auth_proto_rawDesc), len(file_proto_auth_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   25,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

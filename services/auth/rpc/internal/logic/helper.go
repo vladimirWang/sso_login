@@ -16,6 +16,8 @@ const (
 	ttlNonce       = 5 * 60       // nonce:{nonce} 5 分钟
 	ttlFreeze      = 60 * 60      // 失败计数 / 锁定窗口 1 小时
 	ttlOAuthCode   = 5 * 60       // oauth:code:{code} 授权码 5 分钟
+	ttlEmailCode   = 5 * 60       // email:code:{email} 注册邮箱验证码 5 分钟
+	ttlEmailCodeCd = 60           // email:code:cd:{email} 发送频控 60 秒
 	passwordMaxTry = 6            // 窗口内失败 6 次锁定
 )
 
@@ -30,6 +32,12 @@ func failedKey(email string) string {
 func sessionKey(t string) string { return "token:" + t }
 func oauthCodeKey(code string) string {
 	return "oauth:code:" + code
+}
+func emailCodeKey(email string) string {
+	return "email:code:" + email
+}
+func emailCodeCdKey(email string) string {
+	return "email:code:cd:" + email
 }
 
 // oauthCodePayload 授权码内容（Redis JSON），一次性使用

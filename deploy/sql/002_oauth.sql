@@ -23,8 +23,14 @@ END $$;
 
 -- 演示业务系统：secret = demo-secret（仅开发用，生产需更换）
 -- client_secret = sha256("demo-secret")
+-- redirect_uris 必须与各环境实际来源精确匹配（前端用 location.origin 拼接）：
+--   5173  = Vite dev server；8888 = auth-api 直连；80/7443 = docker compose（dev/prod）
 INSERT INTO oauth_clients (client_id, client_secret, name, redirect_uris)
 VALUES ('demo-app', 'cd577fe2561ebff23505db0bb006300c7cdecbd46bc0e03c449afafaca2c25bf',
         '演示业务系统',
-        'http://127.0.0.1:8888/demo-app/callback,http://localhost:8888/demo-app/callback,https://todo.hetou.vip/demo-app/callback,https://www.todo.hetou.vip/demo-app/callback')
-ON CONFLICT (client_id) DO NOTHING;
+        'http://127.0.0.1:5173/demo-app/callback,http://localhost:5173/demo-app/callback,http://127.0.0.1:8888/demo-app/callback,http://localhost:8888/demo-app/callback,http://127.0.0.1/demo-app/callback,http://localhost/demo-app/callback,https://todo.hetou.vip:7443/demo-app/callback,https://www.todo.hetou.vip:7443/demo-app/callback')
+ON CONFLICT (client_id) DO UPDATE
+-- 已存在则刷新名称与回调地址（回调列表随环境演进，重复执行本脚本即可同步）
+SET name = EXCLUDED.name,
+    redirect_uris = EXCLUDED.redirect_uris,
+    updated_at = now();

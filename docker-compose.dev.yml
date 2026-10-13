@@ -44,4 +44,6 @@ services:
     volumes:
       - ./deploy/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/docker/nginx/ssl:/etc/nginx/ssl:ro
+      # 容器化开发需先在 frontend 目录执行 pnpm build；日常前端热更新开发请直接用 pnpm dev
+      - ./frontend/dist:/usr/share/nginx/html:ro
     restart: unless-stopped

@@ -68,6 +68,17 @@ func (s *AuthServer) GetCaptcha(ctx context.Context, in *auth.CaptchaReq) (*auth
 	return l.GetCaptcha(in)
 }
 
+// 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+func (s *AuthServer) SendEmailCode(ctx context.Context, in *auth.EmailCodeReq) (*auth.EmailCodeResp, error) {
+	l := logic.NewSendEmailCodeLogic(ctx, s.svcCtx)
+	return l.SendEmailCode(in)
+}
+
+func (s *AuthServer) VerifyEmailCode(ctx context.Context, in *auth.EmailCodeReq) (*auth.EmailCodeResp, error) {
+	l := logic.NewVerifyEmailCodeLogic(ctx, s.svcCtx)
+	return l.VerifyEmailCode(in)
+}
+
 // 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
 func (s *AuthServer) ValidateSession(ctx context.Context, in *auth.ValidateSessionReq) (*auth.ValidateSessionResp, error) {
 	l := logic.NewValidateSessionLogic(ctx, s.svcCtx)

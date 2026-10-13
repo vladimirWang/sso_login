@@ -1,6 +1,18 @@
 -- SSO 登录中心初始化脚本（PostgreSQL）
 -- 表结构对齐 repo_backend 的 Tenant / User 模型，仅保留登录所需字段
 -- 列名使用 snake_case；表名小写
+--
+-- 用法（psql 元命令 \gexec / \connect，须用 psql -f 执行）：
+--   psql "host=<DB_HOST> port=<DB_PORT> user=postgres password=<DB_PASSWORD> dbname=postgres sslmode=disable" -f 001_init.sql
+--   psql "..." -f 002_oauth.sql
+--   psql "..." -f 003_repo_cms_client.sql
+-- （002/003 需把连接串里的 dbname 改为 sso_login，或执行过 001 后直接 \connect sso_login）
+
+-- 幂等建库：不存在才创建（CREATE DATABASE 不支持 IF NOT EXISTS，用 \gexec 动态执行）
+SELECT 'CREATE DATABASE sso_login'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sso_login')\gexec
+
+\connect sso_login
 
 -- 租户表
 CREATE TABLE IF NOT EXISTS tenants (

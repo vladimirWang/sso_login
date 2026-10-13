@@ -28,6 +28,8 @@ const (
 	Auth_CheckEmailExisted_FullMethodName  = "/auth.Auth/CheckEmailExisted"
 	Auth_GetNonce_FullMethodName           = "/auth.Auth/GetNonce"
 	Auth_GetCaptcha_FullMethodName         = "/auth.Auth/GetCaptcha"
+	Auth_SendEmailCode_FullMethodName      = "/auth.Auth/SendEmailCode"
+	Auth_VerifyEmailCode_FullMethodName    = "/auth.Auth/VerifyEmailCode"
 	Auth_ValidateSession_FullMethodName    = "/auth.Auth/ValidateSession"
 	Auth_OAuthAuthorize_FullMethodName     = "/auth.Auth/OAuthAuthorize"
 	Auth_OAuthExchangeToken_FullMethodName = "/auth.Auth/OAuthExchangeToken"
@@ -47,6 +49,9 @@ type AuthClient interface {
 	CheckEmailExisted(ctx context.Context, in *EmailReq, opts ...grpc.CallOption) (*EmailExistedResp, error)
 	GetNonce(ctx context.Context, in *NonceReq, opts ...grpc.CallOption) (*NonceResp, error)
 	GetCaptcha(ctx context.Context, in *CaptchaReq, opts ...grpc.CallOption) (*CaptchaResp, error)
+	// 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+	SendEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error)
+	VerifyEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error)
 	// 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
 	ValidateSession(ctx context.Context, in *ValidateSessionReq, opts ...grpc.CallOption) (*ValidateSessionResp, error)
 	// OAuth2 授权码模式：已登录用户为业务系统颁发授权码（5 分钟一次性）
@@ -155,6 +160,26 @@ func (c *authClient) GetCaptcha(ctx context.Context, in *CaptchaReq, opts ...grp
 	return out, nil
 }
 
+func (c *authClient) SendEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmailCodeResp)
+	err := c.cc.Invoke(ctx, Auth_SendEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authClient) VerifyEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmailCodeResp)
+	err := c.cc.Invoke(ctx, Auth_VerifyEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authClient) ValidateSession(ctx context.Context, in *ValidateSessionReq, opts ...grpc.CallOption) (*ValidateSessionResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ValidateSessionResp)
@@ -208,6 +233,9 @@ type AuthServer interface {
 	CheckEmailExisted(context.Context, *EmailReq) (*EmailExistedResp, error)
 	GetNonce(context.Context, *NonceReq) (*NonceResp, error)
 	GetCaptcha(context.Context, *CaptchaReq) (*CaptchaResp, error)
+	// 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+	SendEmailCode(context.Context, *EmailCodeReq) (*EmailCodeResp, error)
+	VerifyEmailCode(context.Context, *EmailCodeReq) (*EmailCodeResp, error)
 	// 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
 	ValidateSession(context.Context, *ValidateSessionReq) (*ValidateSessionResp, error)
 	// OAuth2 授权码模式：已登录用户为业务系统颁发授权码（5 分钟一次性）
@@ -252,6 +280,12 @@ func (UnimplementedAuthServer) GetNonce(context.Context, *NonceReq) (*NonceResp,
 }
 func (UnimplementedAuthServer) GetCaptcha(context.Context, *CaptchaReq) (*CaptchaResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCaptcha not implemented")
+}
+func (UnimplementedAuthServer) SendEmailCode(context.Context, *EmailCodeReq) (*EmailCodeResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendEmailCode not implemented")
+}
+func (UnimplementedAuthServer) VerifyEmailCode(context.Context, *EmailCodeReq) (*EmailCodeResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyEmailCode not implemented")
 }
 func (UnimplementedAuthServer) ValidateSession(context.Context, *ValidateSessionReq) (*ValidateSessionResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method ValidateSession not implemented")
@@ -448,6 +482,42 @@ func _Auth_GetCaptcha_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_SendEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailCodeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).SendEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Auth_SendEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).SendEmailCode(ctx, req.(*EmailCodeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Auth_VerifyEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmailCodeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).VerifyEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Auth_VerifyEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).VerifyEmailCode(ctx, req.(*EmailCodeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Auth_ValidateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ValidateSessionReq)
 	if err := dec(in); err != nil {
@@ -562,6 +632,14 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCaptcha",
 			Handler:    _Auth_GetCaptcha_Handler,
+		},
+		{
+			MethodName: "SendEmailCode",
+			Handler:    _Auth_SendEmailCode_Handler,
+		},
+		{
+			MethodName: "VerifyEmailCode",
+			Handler:    _Auth_VerifyEmailCode_Handler,
 		},
 		{
 			MethodName: "ValidateSession",

@@ -23,7 +23,10 @@ BUILD_DIR="$SCRIPT_DIR/build-out"
 STAGE_DIR="$SCRIPT_DIR/.deploy-stage"
 OUTPUT_DIR="$SCRIPT_DIR/dist"
 
-echo "==> [1/5] Mac 原生交叉编译 linux/$GOARCH（不经过 QEMU）..."
+echo "==> [1/6] 构建前端 SPA（frontend/，Vite + React）..."
+( cd frontend && pnpm install --frozen-lockfile=false && pnpm build )
+
+echo "==> [2/6] Mac 原生交叉编译 linux/$GOARCH（不经过 QEMU）..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 CGO_ENABLED=0 GOOS=linux GOARCH="$GOARCH" \
@@ -33,7 +36,7 @@ CGO_ENABLED=0 GOOS=linux GOARCH="$GOARCH" \
 echo "    产物架构确认:"
 file "$BUILD_DIR/auth-rpc" "$BUILD_DIR/auth-api" | sed 's/^/      /'
 
-echo "==> [2/5] 组装镜像构建上下文（$STAGE_DIR）..."
+echo "==> [3/6] 组装镜像构建上下文（$STAGE_DIR）..."
 rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR"
 cp Dockerfile.deploy                          "$STAGE_DIR/Dockerfile"
@@ -42,11 +45,11 @@ cp services/auth/rpc/etc/auth.yaml            "$STAGE_DIR/"
 cp services/auth/api/etc/auth-api.yaml        "$STAGE_DIR/"
 cp deploy/docker/entrypoint.sh                "$STAGE_DIR/"
 
-echo "==> [3/5] 构建 linux/$GOARCH 镜像（QEMU 仅执行轻量 apk add）..."
+echo "==> [4/6] 构建 linux/$GOARCH 镜像（QEMU 仅执行轻量 apk add）..."
 docker build --platform "linux/$GOARCH" -t "$IMAGE_NAME:latest" "$STAGE_DIR"
 echo "    镜像架构确认: $(docker image inspect "$IMAGE_NAME:latest" --format '{{.Architecture}}')"
 
-echo "==> [4/5] 导出镜像并组装部署文件..."
+echo "==> [5/6] 导出镜像并组装部署文件..."
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 docker save "$IMAGE_NAME:latest" | gzip > "$OUTPUT_DIR/$IMAGE_NAME.tar.gz"
@@ -58,9 +61,15 @@ mkdir -p "$OUTPUT_DIR/deploy/docker/nginx/ssl"
 cp deploy/docker/nginx/prod.conf "$OUTPUT_DIR/deploy/docker/nginx/"
 cp deploy/docker/nginx/ssl/*.pem \
    deploy/docker/nginx/ssl/*.key "$OUTPUT_DIR/deploy/docker/nginx/ssl/"
+# 前端 SPA 构建产物（compose 挂载 frontend/dist 到 nginx html 目录）
+mkdir -p "$OUTPUT_DIR/frontend"
+cp -R frontend/dist "$OUTPUT_DIR/frontend/dist"
+# 数据库初始化脚本（服务器首次部署执行，幂等）
+mkdir -p "$OUTPUT_DIR/deploy/sql"
+cp deploy/sql/*.sql "$OUTPUT_DIR/deploy/sql/"
 chmod +x "$OUTPUT_DIR/up.sh"
 
-echo "==> [5/5] 打部署压缩包..."
+echo "==> [6/6] 打部署压缩包..."
 PACKAGE="$SCRIPT_DIR/${PROJECT_NAME}-deploy-$(date +%Y%m%d-%H%M%S).tar.gz"
 tar -czf "$PACKAGE" -C "$OUTPUT_DIR" .
 rm -rf "$OUTPUT_DIR" "$STAGE_DIR"

@@ -25,6 +25,17 @@ type CurrentResp struct {
 	Data    UserInfo `json:"data"`
 }
 
+type EmailCodeReq struct {
+	Email string `json:"email"`
+	Code  string `json:"code,optional"`
+}
+
+type EmailCodeResp struct {
+	Code    int32  `json:"code"`
+	Message string `json:"message"`
+	Data    int32  `json:"data,optional"` // 发送成功：验证码有效期（秒）
+}
+
 type EmailExistedResp struct {
 	Code    int32  `json:"code"`
 	Message string `json:"message"`
@@ -59,9 +70,10 @@ type NonceResp struct {
 }
 
 type RegisterReq struct {
-	Email    string `json:"email"`
-	Username string `json:"username,optional"`
-	Password string `json:"password"`
+	Email     string `json:"email"`
+	Username  string `json:"username,optional"`
+	Password  string `json:"password"`
+	EmailCode string `json:"emailCode"` // 邮箱验证码（/util/emailCode 发送，/util/emailCode/verify 校验）
 }
 
 type RegisterResp struct {

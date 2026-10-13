@@ -4,7 +4,6 @@
 package main
 
 import (
-	"embed"
 	"flag"
 	"fmt"
 
@@ -16,8 +15,8 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 )
 
-//go:embed web/login.html web/demo-app.html
-var webFS embed.FS
+// 前端页面（/oauth/login、/demo-app）已改为 Vite+React SPA，由 nginx 托管并反代本服务，
+// 不再 go:embed 进二进制。
 
 var configFile = flag.String("f", "etc/auth-api.yaml", "the config file")
 
@@ -33,10 +32,9 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
-	// OAuth2 协议端点 + SSO 登录页 / 演示业务系统页（静态资源内嵌二进制）
-	loginPage, _ := webFS.ReadFile("web/login.html")
-	demoPage, _ := webFS.ReadFile("web/demo-app.html")
-	handler.RegisterOAuthRoutes(server, ctx, loginPage, demoPage)
+	// 仅注册 OAuth2 协议端点（authorize/token/userinfo/clientinfo/logout）；
+	// /oauth/login、/demo-app 等页面路由由前端 SPA 承接（nginx try_files）
+	handler.RegisterOAuthRoutes(server, ctx)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

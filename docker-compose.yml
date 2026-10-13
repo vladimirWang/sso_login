@@ -52,6 +52,8 @@ services:
     volumes:
       - ./deploy/docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/docker/nginx/ssl:/etc/nginx/ssl:ro
+      # Vite 构建的 SPA（build.sh 打包 frontend/dist；nginx 托管静态文件 + 反代 API）
+      - ./frontend/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     mem_limit: 64m
     logging:

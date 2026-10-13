@@ -86,11 +86,7 @@ HTTP=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" \
   "$BASE/oauth/authorize?client_id=nope&redirect_uri=$REDIRECT&response_type=code")
 check "不存在 client 被拒(400)" "$HTTP" '400'
 
-echo "9) SSO 登录页 / 演示页 / 应用信息"
-HTTP=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/oauth/login?client_id=demo-app&redirect_uri=$REDIRECT")
-check "登录页 200" "$HTTP" '200'
-HTTP=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/demo-app")
-check "演示业务系统页 200" "$HTTP" '200'
+echo "9) 应用信息（页面 /oauth/login、/demo-app 已改为前端 SPA，由 nginx 托管，不在此测）"
 R=$(curl -s "$BASE/oauth/clientinfo?client_id=demo-app")
 check "clientinfo 返回应用名" "$R" '演示业务系统'
 

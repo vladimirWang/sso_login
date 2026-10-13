@@ -19,6 +19,8 @@ type (
 	CaptchaResp         = auth.CaptchaResp
 	CurrentReq          = auth.CurrentReq
 	CurrentResp         = auth.CurrentResp
+	EmailCodeReq        = auth.EmailCodeReq
+	EmailCodeResp       = auth.EmailCodeResp
 	EmailExistedResp    = auth.EmailExistedResp
 	EmailReq            = auth.EmailReq
 	LoginReq            = auth.LoginReq
@@ -50,6 +52,9 @@ type (
 		CheckEmailExisted(ctx context.Context, in *EmailReq, opts ...grpc.CallOption) (*EmailExistedResp, error)
 		GetNonce(ctx context.Context, in *NonceReq, opts ...grpc.CallOption) (*NonceResp, error)
 		GetCaptcha(ctx context.Context, in *CaptchaReq, opts ...grpc.CallOption) (*CaptchaResp, error)
+		// 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+		SendEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error)
+		VerifyEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error)
 		// 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
 		ValidateSession(ctx context.Context, in *ValidateSessionReq, opts ...grpc.CallOption) (*ValidateSessionResp, error)
 		// OAuth2 授权码模式：已登录用户为业务系统颁发授权码（5 分钟一次性）
@@ -114,6 +119,17 @@ func (m *defaultAuth) GetNonce(ctx context.Context, in *NonceReq, opts ...grpc.C
 func (m *defaultAuth) GetCaptcha(ctx context.Context, in *CaptchaReq, opts ...grpc.CallOption) (*CaptchaResp, error) {
 	client := auth.NewAuthClient(m.cli.Conn())
 	return client.GetCaptcha(ctx, in, opts...)
+}
+
+// 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+func (m *defaultAuth) SendEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error) {
+	client := auth.NewAuthClient(m.cli.Conn())
+	return client.SendEmailCode(ctx, in, opts...)
+}
+
+func (m *defaultAuth) VerifyEmailCode(ctx context.Context, in *EmailCodeReq, opts ...grpc.CallOption) (*EmailCodeResp, error) {
+	client := auth.NewAuthClient(m.cli.Conn())
+	return client.VerifyEmailCode(ctx, in, opts...)
 }
 
 // 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息

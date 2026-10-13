@@ -10,9 +10,10 @@ info (
 type (
 	// ---------------- 公共接口类型 ----------------
 	RegisterReq {
-		Email    string `json:"email"`
-		Username string `json:"username,optional"`
-		Password string `json:"password"`
+		Email     string `json:"email"`
+		Username  string `json:"username,optional"`
+		Password  string `json:"password"`
+		EmailCode string `json:"emailCode"` // 邮箱验证码（/util/emailCode 发送，/util/emailCode/verify 校验）
 	}
 	RegisterResp {
 		Code    int32  `json:"code"`
@@ -43,6 +44,16 @@ type (
 		Code    int32       `json:"code"`
 		Message string      `json:"message"`
 		Data    CaptchaData `json:"data"`
+	}
+	// 发送/校验注册邮箱验证码（发送只需 email；校验需 email + code）
+	EmailCodeReq {
+		Email string `json:"email"`
+		Code  string `json:"code,optional"`
+	}
+	EmailCodeResp {
+		Code    int32  `json:"code"`
+		Message string `json:"message"`
+		Data    int32  `json:"data,optional"` // 发送成功：验证码有效期（秒）
 	}
 	// 邮箱路径参数
 	EmailPath {
@@ -108,6 +119,12 @@ service auth-api {
 
 	@handler getCaptcha
 	get /util/captcha returns (CaptchaResp)
+
+	@handler sendEmailCode
+	post /util/emailCode (EmailCodeReq) returns (EmailCodeResp)
+
+	@handler verifyEmailCode
+	post /util/emailCode/verify (EmailCodeReq) returns (EmailCodeResp)
 }
 
 // 受保护接口：必须携带有效 authorization 头（token 原文，由 Auth 中间件经 gRPC 校验会话）

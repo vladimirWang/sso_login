@@ -18,25 +18,16 @@ import (
 // ssoCookieName SSO 域会话 cookie（httpOnly，由登录接口成功时写入）
 const ssoCookieName = "sso_token"
 
-// RegisterOAuthRoutes 在 REST 服务上注册 OAuth2 协议端点与 SSO 页面
-func RegisterOAuthRoutes(server *rest.Server, svcCtx *svc.ServiceContext, loginPage, demoPage []byte) {
+// RegisterOAuthRoutes 在 REST 服务上注册 OAuth2 协议端点。
+// 页面路由（/oauth/login、/demo-app、/demo-app/callback）由前端 SPA 承接，
+// 生产由 nginx try_files 返回 index.html，开发由 Vite dev server 路由，均不在此注册。
+func RegisterOAuthRoutes(server *rest.Server, svcCtx *svc.ServiceContext) {
 	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/oauth/authorize", Handler: oauthAuthorizeHandler(svcCtx)})
 	server.AddRoute(rest.Route{Method: http.MethodPost, Path: "/oauth/token", Handler: oauthTokenHandler(svcCtx)})
 	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/oauth/userinfo", Handler: oauthUserinfoHandler(svcCtx)})
 	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/oauth/clientinfo", Handler: oauthClientinfoHandler(svcCtx)})
-	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/oauth/login", Handler: staticPageHandler(loginPage)})
 	// SSO 单点登出：业务系统退出后引导用户来此清除 SSO 域 cookie，再 302 回跳
 	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/oauth/logout", Handler: oauthLogoutHandler()})
-	// 演示业务系统（模拟第三方站点，含 /callback 回跳路径）
-	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/demo-app", Handler: staticPageHandler(demoPage)})
-	server.AddRoute(rest.Route{Method: http.MethodGet, Path: "/demo-app/callback", Handler: staticPageHandler(demoPage)})
-}
-
-func staticPageHandler(page []byte) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(page)
-	}
 }
 
 // oauthAuthorizeHandler GET /oauth/authorize?client_id&redirect_uri&response_type=code&state

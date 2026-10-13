@@ -42,6 +42,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: common.GetCaptchaHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPost,
+				Path:    "/util/emailCode",
+				Handler: common.SendEmailCodeHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/util/emailCode/verify",
+				Handler: common.VerifyEmailCodeHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
 				Path:    "/util/nonce",
 				Handler: common.GetNonceHandler(serverCtx),

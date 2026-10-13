@@ -62,6 +62,22 @@ func (l *RegisterLogic) Register(in *auth.RegisterReq) (*auth.RegisterResp, erro
 		return &auth.RegisterResp{Code: errcode.ValidationError, Message: "用户名最长8位"}, nil
 	}
 
+	// 邮箱验证码：必须通过校验（注册成功后一次性删除）
+	if len(strings.TrimSpace(in.EmailCode)) != 6 {
+		return &auth.RegisterResp{Code: errcode.EmailVerifyFail, Message: "请输入 6 位邮箱验证码"}, nil
+	}
+	storedCode, err := l.svcCtx.Redis.GetCtx(l.ctx, emailCodeKey(email))
+	if err != nil {
+		l.Errorf("get email code redis error: %v", err)
+		return &auth.RegisterResp{Code: errcode.SystemError, Message: "系统错误"}, nil
+	}
+	if storedCode == "" {
+		return &auth.RegisterResp{Code: errcode.EmailVerifyFail, Message: "邮箱验证码已过期，请重新获取"}, nil
+	}
+	if storedCode != strings.TrimSpace(in.EmailCode) {
+		return &auth.RegisterResp{Code: errcode.EmailVerifyFail, Message: "邮箱验证码不正确"}, nil
+	}
+
 	// 邮箱已存在
 	if existed, err := l.svcCtx.UserModel.FindOneByEmail(l.ctx, email); err == nil && existed != nil {
 		return &auth.RegisterResp{Code: errcode.EmailExisted, Message: "邮箱已存在"}, nil
@@ -130,6 +146,10 @@ func (l *RegisterLogic) Register(in *auth.RegisterReq) (*auth.RegisterResp, erro
 
 	if !registered {
 		return &auth.RegisterResp{Code: errcode.SystemError, Message: "注册失败，请重试"}, nil
+	}
+	// 注册成功：验证码一次性消费 + 清理发送频控
+	if _, err := l.svcCtx.Redis.DelCtx(l.ctx, emailCodeKey(email), emailCodeCdKey(email)); err != nil {
+		l.Errorf("consume email code error: %v", err)
 	}
 	return &auth.RegisterResp{Code: errcode.Success, Message: "用户注册成功", UserId: userId}, nil
 }

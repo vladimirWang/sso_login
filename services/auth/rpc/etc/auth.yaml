@@ -26,3 +26,11 @@ RabbitMQ:
   Password: "1234"
   VHost: /
   Exchange: auth.events
+
+# 注册邮箱验证码 SMTP（QQ 邮箱：授权码非登录密码，账号/授权码来自 .env.* 环境变量）
+Email:
+  Host: smtp.qq.com
+  Port: 465
+  Account: ${QQ_EMAIL_ACCOUNT}
+  Password: ${QQ_EMAIL_PASSWORD}
+  FromName: SSO 登录中心

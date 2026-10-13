@@ -26,9 +26,10 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 
 func (l *RegisterLogic) Register(req *types.RegisterReq) (resp *types.RegisterResp, err error) {
 	r, err := l.svcCtx.AuthRpc.Register(l.ctx, &authclient.RegisterReq{
-		Email:    req.Email,
-		Username: req.Username,
-		Password: req.Password,
+		Email:     req.Email,
+		Username:  req.Username,
+		Password:  req.Password,
+		EmailCode: req.EmailCode,
 	})
 	if err != nil {
 		return nil, err

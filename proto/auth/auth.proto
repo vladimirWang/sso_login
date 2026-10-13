@@ -17,9 +17,10 @@ message UserInfo {
 
 // 统一业务响应码：200 成功，其他值与 repo_backend errorCode 一致
 message RegisterReq {
-  string email    = 1;
-  string username = 2;
-  string password = 3; // 明文密码，服务端 sha256(password + "_" + salt)
+  string email      = 1;
+  string username   = 2;
+  string password   = 3; // 明文密码，服务端 sha256(password + "_" + salt)
+  string email_code = 4; // 邮箱验证码（注册前由 SendEmailCode 发送，5 分钟一次性）
 }
 message RegisterResp {
   int32  code     = 1;
@@ -95,6 +96,17 @@ message CaptchaResp {
   string captcha_id = 4;
 }
 
+// 邮箱验证码：发送时 code 为空；校验时 code 必填
+message EmailCodeReq {
+  string email = 1;
+  string code  = 2;
+}
+message EmailCodeResp {
+  int32  code    = 1;
+  string message = 2;
+  int32  ttl     = 3; // 发送成功时返回验证码有效期（秒）
+}
+
 message ValidateSessionReq {
   string token = 1;
 }
@@ -150,6 +162,9 @@ service Auth {
   rpc CheckEmailExisted(EmailReq) returns (EmailExistedResp);
   rpc GetNonce(NonceReq) returns (NonceResp);
   rpc GetCaptcha(CaptchaReq) returns (CaptchaResp);
+  // 注册邮箱验证码：发送（60 秒频控，验证码 5 分钟有效）/ 校验（仅校验不消费，注册成功后一次性删除）
+  rpc SendEmailCode(EmailCodeReq) returns (EmailCodeResp);
+  rpc VerifyEmailCode(EmailCodeReq) returns (EmailCodeResp);
   // 供其他业务系统 / API 网关接入 SSO：校验 token 会话并返回用户信息
   rpc ValidateSession(ValidateSessionReq) returns (ValidateSessionResp);
   // OAuth2 授权码模式：已登录用户为业务系统颁发授权码（5 分钟一次性）

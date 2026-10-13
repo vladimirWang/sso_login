@@ -1,0 +1,78 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #1c3faa 0%, #1677ff 55%, #4096ff 100%);
+  min-height: 100vh;
+}
+
+/* ---------------- 登录 / 注册页 ---------------- */
+.login-body {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.panel { background: #fff; border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,.18);
+         width: 400px; max-width: 100%; padding: 40px 36px 32px; }
+.logo { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 14px;
+        background: linear-gradient(135deg, #1677ff, #4096ff); color: #fff;
+        font-size: 26px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.panel h1 { font-size: 20px; color: #222; text-align: center; font-weight: 600; }
+.app-tip { margin: 10px 0 22px; padding: 10px 14px; border-radius: 8px; background: #f0f6ff;
+           color: #4a5a76; font-size: 13px; text-align: center; }
+.app-tip b { color: #1677ff; }
+.app-tip.invalid { background: #fff2f0; color: #cf1322; }
+
+.tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #eee; }
+.tab { flex: 1; text-align: center; padding: 10px 0; font-size: 15px; color: #888; cursor: pointer;
+       border-bottom: 2px solid transparent; transition: .2s; user-select: none; }
+.tab.active { color: #1677ff; border-bottom-color: #1677ff; font-weight: 600; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; }
+.field input { width: 100%; height: 42px; border: 1px solid #d9d9d9; border-radius: 8px;
+               padding: 0 12px; font-size: 14px; outline: none; transition: .2s; }
+.field input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(22,119,255,.12); }
+.field input.ok { border-color: #52c41a; }
+.field input.bad { border-color: #ff4d4f; }
+.field .field-hint { font-size: 12px; margin-top: 5px; min-height: 16px; }
+.field .field-hint.err { color: #cf1322; }
+.field .field-hint.ok { color: #389e0d; }
+
+.captcha-row { display: flex; gap: 10px; }
+.captcha-row input { flex: 1; }
+.captcha-row img { width: 120px; height: 42px; border-radius: 8px; border: 1px solid #d9d9d9; cursor: pointer; }
+
+.code-row { display: flex; gap: 10px; }
+.code-row input { flex: 1; }
+.code-btn { width: 132px; height: 42px; flex-shrink: 0; border: 1px solid #1677ff; border-radius: 8px;
+            background: #fff; color: #1677ff; font-size: 13px; cursor: pointer; transition: .2s; }
+.code-btn:hover:not(:disabled) { background: #f0f6ff; }
+.code-btn:disabled { border-color: #d9d9d9; color: #999; cursor: not-allowed; background: #fafafa; }
+
+.btn { width: 100%; height: 44px; border: none; border-radius: 8px; background: #1677ff;
+       color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: .2s; }
+.btn:hover:not(:disabled) { background: #4096ff; }
+.btn:disabled { background: #a8c7fa; cursor: not-allowed; }
+.msg { min-height: 18px; font-size: 13px; color: #cf1322; text-align: center; margin-bottom: 12px; }
+.msg.ok { color: #389e0d; }
+.hint { margin-top: 16px; font-size: 12px; color: #aaa; text-align: center; line-height: 1.6; }
+
+/* ---------------- 演示业务系统 ---------------- */
+.demo-body { background: #f5f6fa; min-height: 100vh; }
+.demo-header { background: #001529; color: #fff; padding: 14px 32px; display: flex; align-items: center; gap: 12px; }
+.demo-header .badge { background: #1677ff; border-radius: 4px; padding: 2px 8px; font-size: 12px; }
+.demo-main { max-width: 720px; margin: 48px auto; padding: 0 20px; }
+.card { background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.06); padding: 32px; margin-bottom: 20px; }
+.card h2 { font-size: 18px; color: #222; margin-bottom: 16px; }
+.card p.desc { color: #888; font-size: 14px; line-height: 1.8; margin-bottom: 20px; }
+.demo-btn { display: inline-block; height: 42px; line-height: 42px; padding: 0 28px; border: none;
+           border-radius: 8px; background: #1677ff; color: #fff; font-size: 15px; cursor: pointer;
+           text-decoration: none; transition: .2s; }
+.demo-btn:hover { background: #4096ff; }
+pre { background: #0b1021; color: #9ecbff; padding: 16px; border-radius: 8px; font-size: 12px;
+      overflow: auto; white-space: pre-wrap; word-break: break-all; max-height: 320px; }
+.kv { font-size: 13px; color: #555; margin-bottom: 8px; word-break: break-all; }
+.kv b { color: #1677ff; }
+.kv.ok { color: #389e0d; font-weight: 600; }
+.kv.err { color: #cf1322; font-weight: 600; }
+
+.fallback-404 { color: #fff; text-align: center; padding-top: 120px; font-size: 18px; }
