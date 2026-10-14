@@ -71,7 +71,8 @@ chmod +x "$OUTPUT_DIR/up.sh"
 
 echo "==> [6/6] 打部署压缩包..."
 PACKAGE="$SCRIPT_DIR/${PROJECT_NAME}-deploy-$(date +%Y%m%d-%H%M%S).tar.gz"
-tar -czf "$PACKAGE" -C "$OUTPUT_DIR" .
+# COPYFILE_DISABLE=1：阻止 macOS bsdtar 把扩展属性打成 ._* AppleDouble 垃圾文件带进部署包
+COPYFILE_DISABLE=1 tar -czf "$PACKAGE" -C "$OUTPUT_DIR" .
 rm -rf "$OUTPUT_DIR" "$STAGE_DIR"
 
 ip="139.224.68.145"

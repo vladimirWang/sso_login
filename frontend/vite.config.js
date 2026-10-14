@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
   const proxyOpts = { target, changeOrigin: true, secure: false }
 
   return {
-    base: './',
+    // 必须用绝对路径：SPA 路由（/oauth/login、/demo-app）下相对路径 ./assets 会解析成
+    // /oauth/assets/...，命中 SPA 回退返回 index.html，模块脚本 MIME 校验失败白屏
+    base: '/',
     plugins: [react()],
     server: {
       port: 5173,
