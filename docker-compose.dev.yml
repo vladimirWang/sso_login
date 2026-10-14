@@ -31,6 +31,9 @@ services:
     expose:
       - "8888" # auth-api（nginx 反代目标，仅 compose 内网可见）
       - "8081" # auth-rpc（仅内部服务注册/调用）
+    ports:
+      - "8888:8888"
+      - "8081:8081"
     restart: unless-stopped
 
   # 开发环境纯 HTTP，nginx 只监听 80（default.conf，无 HTTPS）
